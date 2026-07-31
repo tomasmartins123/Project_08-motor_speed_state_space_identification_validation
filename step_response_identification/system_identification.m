@@ -105,3 +105,12 @@ plot(t, y_R, 'g.', 'MarkerSize', 8, 'DisplayName', 'Experimental Data'); hold on
 plot(t, y_sim_R, 'r-', 'LineWidth', 2, 'DisplayName', 'Identified Discrete Model');
 grid on; title('Right Motor: Experimental Speed vs First-Order Discrete Model');
 xlabel('Time [s]'); ylabel('Speed [RPM]'); legend('Location', 'southeast');
+
+%% 9. Save Figure as High-Resolution Image
+
+OUTPUT_IMAGE = 'identification_plot.png';
+
+set(gcf,'Position',[100 100 1200 800]);   % Larger figure
+exportgraphics(gcf, OUTPUT_IMAGE, 'Resolution', 300);
+
+fprintf('Identification plot saved successfully as "%s".\n', OUTPUT_IMAGE);
