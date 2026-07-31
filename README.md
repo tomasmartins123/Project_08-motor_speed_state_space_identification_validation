@@ -8,123 +8,245 @@ This repository contains the physical dynamic modeling, continuous and discrete 
 
 While previous iterations (Project 07) focused on model-free PID control without knowledge of motor physics, **Project 08** identifies the physical motor dynamics ($K$ and $\tau$) to build a mathematical state-space model.
 
-The primary objective is to derive a first-order continuous dynamic model from physical principles, convert it into a discrete state-space representation at a sampling period of $T_s = 20\text{ ms}$, identify baseline system parameters under a step input of $\text{PWM} = 100$, and cross-validate model fidelity in real time inside an Arduino UNO under an unseen profile ($\text{PWM} = 150$) as well as across the full operating range ($\text{PWM } 30 \text{ to } 255$).
+The primary objective is to derive a first-order continuous dynamic model from physical principles, convert it into a discrete state-space representation at a sampling period of $T_s = 20\ \mathrm{ms}$, identify baseline system parameters under a step input of $\mathrm{PWM}=100$, and cross-validate model fidelity in real time inside an Arduino UNO under an unseen profile ($\mathrm{PWM}=150$), as well as across the full operating range (PWM 30 to 255).
 
 ---
 
 ## Physical Modeling and Derivation
 
-### 1. Mechanical Equation of Motion (Newton's 2nd Law for Rotation)
+### 1. Mechanical Equation of Motion (Newton's Second Law for Rotation)
 
 Applying Newton's Second Law for rotational systems to the motor shaft:
 
-$$\sum T = I \cdot \alpha(t)$$
+$$
+\sum T = I\alpha(t)
+$$
 
-$$T(t) - T_{\text{friction}}(t) = I \frac{d\omega(t)}{dt}$$
+$$
+T(t)-T_{\mathrm{friction}}(t)=I\frac{d\omega(t)}{dt}
+$$
 
-Assuming linear viscous friction $T_{\text{friction}}(t) = b \cdot \omega(t)$ and electromagnetic torque proportional to input $u(t)$ ($T(t) = K_m \cdot u(t)$):
+Assuming linear viscous friction
 
-$$K_m u(t) = I \frac{d\omega(t)}{dt} + b \omega(t)$$
+$$
+T_{\mathrm{friction}}(t)=b\,\omega(t)
+$$
 
-Taking the Laplace transform under zero initial conditions:
+and electromagnetic torque proportional to the input
 
-$$K_m U(s) = I s W(s) + b W(s) \implies \frac{W(s)}{U(s)} = \frac{K_m}{I s + b}$$
+$$
+T(t)=K_m\,u(t)
+$$
 
-Dividing numerator and denominator by the viscous damping coefficient $b$ yields the standard first-order Transfer Function:
+gives
 
-$$G(s) = \frac{W(s)}{U(s)} = \frac{K}{\tau s + 1}$$
+$$
+K_m u(t)=I\frac{d\omega(t)}{dt}+b\omega(t)
+$$
 
-Where the physical parameters are defined as:
-* **Static Gain ($K = \frac{K_m}{b}$):** Represents steady-state output per unit input ($\text{RPM} / \text{PWM}$) at $s = 0$.
-* **Time Constant ($\tau = \frac{I}{b}$):** Represents mechanical system inertia, defined as the time required to reach $63.2\%$ of the steady-state velocity ($y_{ss}$). At $t = 4\tau$, the system reaches $\approx 98\%$ of its final speed.
+Taking the Laplace transform under zero initial conditions,
 
-> **Model Order Reduction:** The real electro-mechanical motor is technically a 2nd-order system. However, because electrical dynamics (inductance/resistance time constants) are significantly faster than the mechanical dynamics, the electrical domain collapses, simplifying the system to 1st order without significant loss of accuracy.
+$$
+K_mU(s)=IsW(s)+bW(s)
+$$
+
+which yields
+
+$$
+G(s)=\frac{W(s)}{U(s)}
+=\frac{K_m}{Is+b}
+$$
+
+Dividing numerator and denominator by the viscous damping coefficient $b$ produces the standard first-order transfer function
+
+$$
+G(s)=\frac{K}{\tau s+1}
+$$
+
+where
+
+* **Static Gain**
+
+$$
+K=\frac{K_m}{b}
+$$
+
+represents the steady-state output per unit input (RPM/PWM).
+
+* **Time Constant**
+
+$$
+\tau=\frac{I}{b}
+$$
+
+represents the mechanical inertia of the system. After one time constant the motor reaches 63.2% of its steady-state speed, while after approximately $4\tau$ it reaches about 98%.
+
+> **Model Order Reduction:** The real electromechanical motor is technically a second-order system. However, the electrical dynamics (armature resistance and inductance) are significantly faster than the mechanical dynamics. Their influence is therefore neglected, allowing the system to be accurately approximated by a first-order model.
 
 ---
 
-### 2. Continuous State-Space Representation
+## 2. Continuous State-Space Representation
 
-Converting the differential equation $\tau \dot{\omega}(t) + \omega(t) = K u(t)$ into continuous state-space form ($\dot{x}(t) = A x(t) + B u(t)$, $y(t) = C x(t) + D u(t)$):
+Starting from
 
-$$\dot{x}(t) = \left[-\frac{1}{\tau}\right] x(t) + \left[\frac{K}{\tau}\right] u(t)$$
+$$
+\tau\dot{\omega}(t)+\omega(t)=Ku(t)
+$$
 
-$$y(t) = [1] x(t) + [0] u(t)$$
+the continuous state-space representation becomes
 
-* **$A$ (Dynamic Matrix):** Describes natural system dissipation ($-\frac{1}{\tau}$). Its eigenvalue defines the continuous system pole.
-* **$B$ (Input Matrix):** Quantifies how input commands directly alter the state ($\frac{K}{\tau}$).
-* **$C$ (Output Matrix):** Maps internal state $x(t)$ to encoder speed measurements $y(t)$ ($C = 1$).
-* **$D$ (Direct Transmission Matrix):** Set to zero ($D = 0$), indicating no instantaneous feedthrough from input to output.
+$$
+\dot{x}(t)=Ax(t)+Bu(t)
+$$
+
+$$
+y(t)=Cx(t)+Du(t)
+$$
+
+with
+
+$$
+A=-\frac1{\tau}
+$$
+
+$$
+B=\frac{K}{\tau}
+$$
+
+$$
+C=1
+$$
+
+$$
+D=0
+$$
+
+where
+
+* **A** describes the natural decay of the system.
+* **B** determines how the input affects the motor state.
+* **C** maps the state to the measured wheel speed.
+* **D** is zero because there is no direct feedthrough from the PWM command to the measured output.
 
 ---
 
-### 3. Discrete-Time State-Space Representation ($T_s = 20\text{ ms}$)
+## 3. Discrete-Time State-Space Representation
 
-While physical motor dynamics are continuous, microcontrollers execute digitally in discrete time steps ($T_s = 20\text{ ms}$). To execute synchronously within the control loop, the system is discretized via Zero-Order Hold (ZOH):
+Although motor dynamics are continuous, the Arduino executes the control algorithm at discrete instants every
 
-$$x[k+1] = A_d \cdot x[k] + B_d \cdot u[k]$$
+$$
+T_s=20\ \mathrm{ms}
+$$
 
-$$y[k] = C_d \cdot x[k] + D_d \cdot u[k]$$
+Using Zero-Order Hold discretization,
 
-Analytically derived discrete matrices:
+$$
+x[k+1]=A_dx[k]+B_du[k]
+$$
 
-$$A_d = e^{-\frac{T_s}{\tau}}$$
+$$
+y[k]=C_dx[k]+D_du[k]
+$$
 
-$$B_d = K \left(1 - e^{-\frac{T_s}{\tau}}\right) = K (1 - A_d)$$
+where
 
-$$C_d = 1, \quad D_d = 0$$
+$$
+A_d=e^{-T_s/\tau}
+$$
+
+$$
+B_d=K\left(1-e^{-T_s/\tau}\right)
+=K(1-A_d)
+$$
+
+$$
+C_d=1,\qquad D_d=0
+$$
 
 ---
 
-## Speed Measurement Method: M/T (Time-Interval) Principle
+## Speed Measurement Method: M/T (Time-Interval Principle)
 
-Standard pulse-counting techniques (M-method) count encoder pulses over a fixed sampling window ($T_s = 20\text{ ms}$). On low-resolution encoders ($20\text{ slots/revolution}$), counting $1$ vs $2$ pulses introduces severe quantization steps of $150\text{ RPM}$, obscuring low-speed dynamics. To improve measurement accuracy and resolution, velocity estimation was upgraded to the **M/T (Time-Interval) Method**, executed through three distinct algorithmic steps:
+Traditional pulse-counting methods (M-method) estimate speed by counting encoder pulses over a fixed sampling interval. With low-resolution encoders (20 slots per revolution), counting only one or two pulses inside a 20 ms window introduces large quantization errors of approximately 150 RPM.
+
+To improve both resolution and identification fidelity, speed estimation was upgraded to the **M/T (Time-Interval) Method**, which measures the elapsed time between consecutive encoder transitions.
 
 ### Step 1: Consecutive Transition Time Measurement
-Hardware interrupts are configured in `CHANGE` mode to capture both rising and falling edges of the encoder signal. The elapsed microsecond time interval ($dt$) between consecutive transitions is calculated using hardware microsecond timers (`micros()`):
 
-$$dt = t_{\text{now}} - t_{\text{last}}$$
+Encoder interrupts are configured in `CHANGE` mode so that both rising and falling edges are detected.
+
+The elapsed time between two consecutive valid transitions is
+
+$$
+dt=t_{\mathrm{now}}-t_{\mathrm{last}}
+$$
+
+using the Arduino `micros()` timer.
+
+---
 
 ### Step 2: Noise Filtering and Transition Accumulation
 
-To reject false interrupt chatter and electrical noise, a minimum time threshold filter of $1\text{ ms}$ ($1000\ \mu\text{s}$) is applied before accepting samples. Valid inter-pulse intervals are accumulated, and the transition counter is incremented:
+To reject false transitions caused by electrical noise, intervals shorter than **1 ms** are discarded.
 
 ```cpp
-if (dt >= 1000) { // 1 ms software noise filter
-    sum_dt += dt;      // Accumulate valid pulse intervals
-    count_dt++;        // Increment transition count
-    last_time = now;   // Update last valid timestamp
+if (dt >= 1000) {      // 1 ms software noise filter
+    sum_dt += dt;      // Accumulate valid intervals
+    count_dt++;        // Count valid transitions
+    last_time = now;   // Update timestamp
 }
 ```
 
-The mean time interval between valid transitions is then computed as
+The average interval between valid transitions is then computed as
 
 $$
-\Delta t_{\mathrm{avg}}=\frac{\sum dt}{N}
+\Delta t_{\mathrm{avg}}
+=
+\frac{\sum dt}{N}
 $$
 
-where:
+where
 
-* $\sum dt$ is the accumulated time between valid encoder transitions.
-* $N$ is the number of valid transitions measured during the sampling window.
+* $\sum dt$ is the accumulated transition time.
+* $N$ is the number of valid transitions detected during the sampling window.
 
-### Step 3: RPM Derivation & Mathematical Constant
+---
 
-Because `CHANGE` mode registers $2$ transitions per slot, a $20$-slot disk yields **40 transitions per wheel revolution** ($2 \times 20 = 40$). The motor speed in RPM is therefore
+### Step 3: RPM Computation
+
+Using `CHANGE` interrupts, every encoder slot generates two transitions.
+
+Since the encoder has **20 slots**, one wheel revolution corresponds to
+
+$$
+40
+=
+2\times20
+$$
+
+detected transitions.
+
+Therefore,
 
 $$
 \mathrm{RPM}
 =
-\frac{60\times10^6}{40\times\Delta t_{\mathrm{avg}}}
+\frac{60\times10^6}
+{40\,\Delta t_{\mathrm{avg}}}
 =
-\frac{1\,500\,000}{\Delta t_{\mathrm{avg}}}
+\frac{1\,500\,000}
+{\Delta t_{\mathrm{avg}}}
 $$
 
-By measuring microsecond intervals directly and calculating $\Delta t_{\mathrm{avg}}$, speed calculations yield smooth floating-point values, eliminating fixed-step quantization jumps and improving the fidelity of the identification process.
+Direct measurement of transition intervals produces smooth floating-point speed estimates, eliminating the coarse quantization associated with pulse-counting methods and substantially improving identification accuracy.
+
 ---
 
-## System Identification ($\text{PWM} = 100$)
+## System Identification ($\mathrm{PWM}=100$)
 
-System identification was performed experimentally by capturing the open-loop step response at an input level of $\text{PWM} = 100$. The parameter values presented below were obtained from the mathematical average of 5 experimental identification tests and rounded to three decimal places.
+System identification was performed experimentally by recording the open-loop step response using a constant PWM input of 100.
+
+The parameters reported below correspond to the arithmetic mean obtained from five independent identification experiments.
 
 ![System Identification Step Response](step_response_identification/identification_plot.png)
 
