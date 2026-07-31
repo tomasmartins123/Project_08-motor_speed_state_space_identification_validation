@@ -97,16 +97,12 @@ last_time = now; // Update last valid timestamp
 
 Subsequently, the mean elapsed interval ($\overline{\Delta t}$) across the window is computed:
 
-$$\overline{\Delta t} = \frac{\text{sum\_dt}}{\text{count\_dt}}$$
+$$\overline{\Delta_t} = \frac{\text{sum\_dt}}{\text{count\_dt}}$$
 
 ### Step 3: RPM Derivation & Mathematical Constant
 Because `CHANGE` mode registers $2\text{ transitions per slot}$, a $20\text{-slot}$ disk yields **$40\text{ transitions per wheel revolution}$** ($2 \times 20 = 40$). The motor speed in RPM is derived as:
 
-$$\text{RPM} = \frac{60 \times 10^6\ \mu\text{s/min}}{40 \times \overline{\Delta t}} = \frac{1\,500\,000}{\overline{\Delta t}}$$
-
-Where:
-
-$$\overline{\Delta t} = \frac{\text{sum\_dt}}{\text{count\_dt}}$$
+$$\text{RPM} = \frac{60 \times 10^6\ \mu\text{s/min}}{40 \times \overline{\Delta_t}} = \frac{1\,500\,000}{\overline{\Delta_t}}$$
 
 By measuring microsecond intervals directly and calculating $\overline{\Delta t}$, speed calculations yield smooth floating-point values, eliminating fixed-step quantization jumps and improving the fidelity of the identification process.
 
