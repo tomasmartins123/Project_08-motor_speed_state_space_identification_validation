@@ -97,7 +97,7 @@ last_time = now; // Update last valid timestamp
 
 Subsequently, the mean elapsed interval ($\overline{\Delta t}$) across the window is computed:
 
-$$\overline{\Delta_t} = \frac{\text{sum\_dt}}{\text{count\_dt}}$$
+$$\overline{\Delta t} = \frac{\text{sum\_dt}}{\text{count\_dt}}$$
 
 ### Step 3: RPM Derivation & Mathematical Constant
 Because `CHANGE` mode registers $2\text{ transitions per slot}$, a $20\text{-slot}$ disk yields **$40\text{ transitions per wheel revolution}$** ($2 \times 20 = 40$). The motor speed in RPM is derived as:
