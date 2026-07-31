@@ -85,29 +85,44 @@ Hardware interrupts are configured in `CHANGE` mode to capture both rising and f
 $$dt = t_{\text{now}} - t_{\text{last}}$$
 
 ### Step 2: Noise Filtering and Transition Accumulation
+
 To reject false interrupt chatter and electrical noise, a minimum time threshold filter of $1\text{ ms}$ ($1000\ \mu\text{s}$) is applied before accepting samples. Valid inter-pulse intervals are accumulated, and the transition counter is incremented:
 
 ```cpp
 if (dt >= 1000) { // 1 ms software noise filter
-sum_dt += dt; // Accumulate valid pulse intervals
-count_dt++; // Increment transition count
-last_time = now; // Update last valid timestamp
+    sum_dt += dt;      // Accumulate valid pulse intervals
+    count_dt++;        // Increment transition count
+    last_time = now;   // Update last valid timestamp
 }
 ```
 
 Subsequently, the mean elapsed interval ($\overline{\Delta t}$) across the window is computed as:
 
 $$
-\overline{\Delta t}=\frac{\text{sum\_dt}}{\text{count\_dt}}
+\overline{\Delta t}
+=
+\frac{\sum dt}{N}
 $$
 
-### Step 3: RPM Derivation & Mathematical Constant
-Because `CHANGE` mode registers $2\text{ transitions per slot}$, a $20\text{-slot}$ disk yields **$40\text{ transitions per wheel revolution}$** ($2 \times 20 = 40$). The motor speed in RPM is derived as:
+where:
 
-$$\text{RPM} = \frac{60 \times 10^6\ \mu\text{s/min}}{40 \times \overline{\Delta_t}} = \frac{1\,500\,000}{\overline{\Delta_t}}$$
+* $\sum dt$ is the accumulated time between valid encoder transitions.
+* $N$ is the number of valid transitions measured during the sampling window.
+
+### Step 3: RPM Derivation & Mathematical Constant
+
+Because `CHANGE` mode registers $2$ transitions per slot, a $20$-slot disk yields **$40$ transitions per wheel revolution** ($2 \times 20 = 40$). The motor speed in RPM is derived as:
+
+$$
+\mathrm{RPM}
+=
+\frac{60 \times 10^6\ \mu\mathrm{s}/\mathrm{min}}
+{40 \times \overline{\Delta t}}
+=
+\frac{1\,500\,000}{\overline{\Delta t}}
+$$
 
 By measuring microsecond intervals directly and calculating $\overline{\Delta t}$, speed calculations yield smooth floating-point values, eliminating fixed-step quantization jumps and improving the fidelity of the identification process.
-
 ---
 
 ## System Identification ($\text{PWM} = 100$)
