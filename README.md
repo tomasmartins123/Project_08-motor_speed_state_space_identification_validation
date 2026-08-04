@@ -108,7 +108,7 @@ Where:
 
 $$\overline{\Delta t} = \frac{\text{sum}_{\text{dt}}}{\text{count}_{\text{dt}}}$$
 
-By measuring microsecond intervals directly and calculating $\overline{\Delta t}$, speed calculations yield smooth floating-point values, eliminating fixed-step quantization jumps and improving the fidelity of the identification process.
+By measuring microsecond intervals directly and calculating $\overline{\Delta t}$, speed calculations yield smooth floating-point values, significantly reducing quantization effects compared to conventional pulse countings and improving the fidelity of the identification process.
 
 ---
 
@@ -120,21 +120,21 @@ System identification was performed experimentally by capturing the open-loop st
 
 ### 1.1. Left Wheel Motor Model
 
-$$\begin{aligned} A_L &= 0.857 \\ B_L &= 0.197 \end{aligned}$$
+$$\begin{aligned} A_L &= 0.810 \\ B_L &= 0.255 \end{aligned}$$
 
-* **Steady-State Speed ($y_{ss}$):** $137.882\text{ RPM}$
-* **Static Gain ($K_L$):** $1.379\text{ RPM/PWM}$
-* **Time Constant ($\tau_L$):** $0.140\text{ s}$
-* **Discrete Recurrence Equation:** $x_L[k+1] = 0.857 \cdot x_L[k] + 0.197 \cdot u[k]$
+* **Steady-State Speed ($y_{ss}$):** $133.899\text{ RPM}$
+* **Static Gain ($K_L$):** $1.339\text{ RPM/PWM}$
+* **Time Constant ($\tau_L$):** $0.184\text{ s}$
+* **Discrete Recurrence Equation:** $x_L[k+1] = 0.810 \cdot x_L[k] + 0.255 \cdot u[k]$
 
 ### 1.2. Right Wheel Motor Model
 
-$$\begin{aligned} A_R &= 0.893 \\ B_R &= 0.151 \end{aligned}$$
+$$\begin{aligned} A_R &= 0.833 \\ B_R &= 0.225 \end{aligned}$$
 
-* **Steady-State Speed ($y_{ss}$):** $140.098\text{ RPM}$
-* **Static Gain ($K_R$):** $1.401\text{ RPM/PWM}$
-* **Time Constant ($\tau_R$):** $0.192\text{ s}$
-* **Discrete Recurrence Equation:** $x_R[k+1] = 0.893 \cdot x_R[k] + 0.151 \cdot u[k]$
+* **Steady-State Speed ($y_{ss}$):** $134.181\text{ RPM}$
+* **Static Gain ($K_R$):** $1.342\text{ RPM/PWM}$
+* **Time Constant ($\tau_R$):** $0.220\text{ s}$
+* **Discrete Recurrence Equation:** $x_R[k+1] = 0.833 \cdot x_R[k] + 0.225 \cdot u[k]$
 ---
 
 ## Hardware-in-the-Loop (HIL) Cross-Validation ($\text{PWM} = 150$)
@@ -145,7 +145,7 @@ Cross-validation testing was executed under an unseen validation signal ($\text{
 
 ### Cross-Validation Behavior at $\text{PWM} = 150$
 
-* **Linear Scaling ($K$):** When stepping up actuation by $1.5\times$ (from 100 to 150 PWM), the physical motor speeds scaled proportionally from $\approx 135\text{ RPM}$ to $\approx 207-212\text{ RPM}$, aligning with the linear discrete model prediction.
+* **Linear Scaling ($K$):** When stepping up actuation by $1.5\times$ (from 100 to 150 PWM), the physical motor speeds scaled proportionally from $\approx 135\text{ RPM}$ to $\approx 200\text{ RPM}$, aligning with the linear discrete model prediction.
 * **Transient Accuracy ($\tau$):** The exponential rise of the discrete recurrence model closely matches the experimental response during the first $0.5\text{ s}$, confirming correct continuous-to-discrete dynamic transformation.
 
 ---
@@ -191,5 +191,5 @@ For control design purposes (such as state-feedback and state observers), the mo
 * **Physics-Based Identification:** Complete mechanical modeling via Newton's 2nd Law, justifying 2nd-to-1st order dynamic reduction.
 * **M/T Method Integration:** Replaced fixed-window pulse counting with high-precision inter-pulse time measurement on `CHANGE` interrupt edges.
 * **Identification vs Validation Separation:** System parameters identified at $\text{PWM} = 100$ and cross-validated under an unseen profile ($\text{PWM} = 150$).
-* **Real-Time HIL Execution:** Discrete state-space simulation running synchronously at $50\text{ Hz}$ ($T_s = 20\text{ ms}$) on standard 8-bit microcontroller hardware.
+* **Real-Time HIL Execution:** Discrete state-space simulation running synchronously at $25\text{ Hz}$ ($T_s = 40\text{ ms}$) on standard 8-bit microcontroller hardware.
 * **Operating Range Mapping:** Comprehensive categorization of low (dead-zone), medium (linear), and high (dispersed) operating regions from PWM 30 to 255.

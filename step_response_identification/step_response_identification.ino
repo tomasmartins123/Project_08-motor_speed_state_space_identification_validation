@@ -38,7 +38,7 @@ float last_rpm_right = 0.0f;
 // -----------------------------------------------------------------------------
 // Experiment Parameters
 // -----------------------------------------------------------------------------
-const unsigned long SAMPLE_TIME_MS = 20;   // Sampling period (50 Hz, Ts = 0.02 s)
+const unsigned long SAMPLE_TIME_MS = 40;   // Sampling period (25 Hz, Ts = 0.04 s)
 const int PWM_STEP_VALUE = 100;            // Step input amplitude [0,255]
 
 unsigned long start_time = 0;

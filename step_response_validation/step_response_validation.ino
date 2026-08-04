@@ -38,7 +38,7 @@ float last_rpm_right = 0.0f;
 // -----------------------------------------------------------------------------
 // Experiment Parameters
 // -----------------------------------------------------------------------------
-const unsigned long SAMPLE_TIME_MS = 20;   // Sampling period (50 Hz, Ts = 0.02 s)
+const unsigned long SAMPLE_TIME_MS = 40;   // Sampling period (25 Hz, Ts = 0.04 s)
 const int PWM_STEP_VALUE = 150;           // Different PWM value from the identification test, used to validate the identified model. 
 
 unsigned long start_time = 0;
@@ -51,11 +51,11 @@ bool test_active = true;
 // x[k+1] = A·x[k] + B·u[k]
 // The values for each matrix are the average result of 5 test rounded to the nearest thousandth.
 // -----------------------------------------------------------------------------
-const float A_L = 0.857f; 
-const float B_L = 0.197f;
+const float A_L = 0.810f; 
+const float B_L = 0.255f;
 
-const float A_R = 0.893f;
-const float B_R = 0.151f;
+const float A_R = 0.833f;
+const float B_R = 0.225f;
 
 // Internal model states (predicted motor speed)
 float x_sim_L = 0.0f;

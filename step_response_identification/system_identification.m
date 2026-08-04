@@ -19,7 +19,7 @@ u_raw = data.pwm;              % Applied PWM input [0..255]
 y_L_raw = data.rpm_left;       % Left motor speed [RPM]
 y_R_raw = data.rpm_right;      % Right motor speed [RPM]
 
-Ts = 0.02; % Sampling period: 20 ms (50 Hz)
+Ts = 0.04; % Sampling period: 40 ms (25 Hz)
 
 %% 2. Isolate Step Response Window (from t = 2.0s to t = 6.0s)
 idx = find(t_raw >= 2.0 & t_raw <= 6.0);
